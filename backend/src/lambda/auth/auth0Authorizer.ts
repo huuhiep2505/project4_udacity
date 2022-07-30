@@ -3,7 +3,6 @@ import 'source-map-support/register'
 
 import { verify, decode } from 'jsonwebtoken'
 import { createLogger } from '../../utils/logger'
-import Axios from 'axios'
 import { Jwt } from '../../auth/Jwt'
 import { JwtPayload } from '../../auth/JwtPayload'
 
@@ -55,45 +54,37 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   const token = getToken(authHeader)
   const jwt: Jwt = decode(token, { complete: true }) as Jwt
 
-  const key = await getSigningKey(jwksUrl, jwt.header.kid)
-  return verify(token, key.publicKey, { algorithms: ['RS256'] }) as JwtPayload
-}
+  // TODO: Implement token verification
+  // You should implement it similarly to how it was implemented for the exercise for the lesson 5
+  // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
 
-const getSigningKey = async (jwksUrlm, kid) => {
-  const res = await Axios.get(jwksUrlm, {
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Credentials': "'true'"
+  verify(token, getKey, { algorithms: ['HS256'] }, function (err, decodeed: object) {
+    if (err) {
+      console.log('Error: ', err)
+      throw new Error('Invalid JWT token!')
+    }
+    const jwtPayload = jwt.payload
+    if (decodeed['sub'] !== jwt.payload.sub
+      || decodeed['iss'] !== jwtPayload.iss
+      || decodeed['iat'] !== jwtPayload.iat
+      || decodeed['exp'] !== jwtPayload.exp) {
+      throw new Error('Incorrect JWT token!')
     }
   })
-  const keys = res.data.keys
-  const signingKeys = keys
-    .filter(
-      (key) =>
-        key.use === 'sig' && // JWK property `use` determines the JWK is for signing
-        key.kty === 'RSA' && // We are only supporting RSA
-        key.kid && // The `kid` must be present to be useful for later
-        key.x5c &&
-        key.x5c.length // Has useful public keys (we aren't using n or e)
-    )
-    .map((key) => {
-      return { kid: key.kid, nbf: key.nbf, publicKey: certToPEM(key.x5c[0]) }
-    })
-  const signingKey = signingKeys.find((key) => key.kid === kid)
-  if (!signingKey) {
-    throw new Error('Invalid signing keys')
-    logger.error('No signing keys found')
-  }
-
-  logger.info('Signing keys created successfully ', signingKey)
-  return signingKey
+  return jwt.payload
 }
 
-function certToPEM(cert) {
-  cert = cert.match(/.{1,64}/g).join('\n')
-  cert = `-----BEGIN CERTIFICATE-----\n${cert}\n-----END CERTIFICATE-----\n`
-  return cert
+function getKey(header, callback) {
+  const jwksClient = require('jwks-rsa');
+  const client = jwksClient({
+    jwksUri: jwksUrl
+  })
+
+  client.getSigningKey(header.pid, function (err, key) {
+    if (err) console.log('Error: ', err)
+    var signingKey = key.publicKey || key.rsaPublicKey;
+    callback(null, signingKey);
+  });
 }
 
 function getToken(authHeader: string): string {

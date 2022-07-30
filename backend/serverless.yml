@@ -1,12 +1,11 @@
-org: huuhiep2505
-app: serverless-todo-app
-service: serverless-todo-app
+service: huuhiep2505
 
 plugins:
+  - serverless-aws-documentation
+  - serverless-reqvalidator-plugin
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
-  - serverless-reqvalidator-plugin
 
 package:
   individually: true
