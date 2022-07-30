@@ -58,19 +58,14 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   // You should implement it similarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
 
-  verify(token, getKey, { algorithms: ['HS256'] }, function (err, decodeed: object) {
+  verify(token, getKey, { algorithms: ['HS256'] }, function (err, decoded: object) {
+    console.log(decoded)
     if (err) {
       console.log('Error: ', err)
       throw new Error('Invalid JWT token!')
     }
-    const jwtPayload = jwt.payload
-    if (decodeed['sub'] !== jwt.payload.sub
-      || decodeed['iss'] !== jwtPayload.iss
-      || decodeed['iat'] !== jwtPayload.iat
-      || decodeed['exp'] !== jwtPayload.exp) {
-      throw new Error('Incorrect JWT token!')
-    }
   })
+  
   return jwt.payload
 }
 

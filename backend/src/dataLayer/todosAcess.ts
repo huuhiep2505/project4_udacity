@@ -30,7 +30,7 @@ export class TodosAccess {
     }
   
     async getAllTodos(userId: string): Promise<TodoItem[]> {
-      logger.info('Getting all todos')
+      logger.info('Get all todos')
       const result = await this.docClient
         .query({
           TableName: this.todosTable,
@@ -45,7 +45,7 @@ export class TodosAccess {
     }
   
     async createTodo(todoItem: TodoItem): Promise<TodoItem> {
-      logger.info('Create a new todo')
+      logger.info('Create new todo')
       await this.docClient
         .put({
           TableName: this.todosTable,
@@ -56,7 +56,7 @@ export class TodosAccess {
     }
   
     async updateTodoItem(userId: string, todoId: string, todoUpdate: TodoUpdate) {
-      logger.info(`Updating todo ${todoId} with ${JSON.stringify(todoUpdate)}`)
+      logger.info(`Update todo ${todoId} with ${JSON.stringify(todoUpdate)}`)
       await this.docClient
         .update({
           TableName: this.todosTable,
@@ -64,21 +64,21 @@ export class TodosAccess {
             userId,
             todoId
           },
-          UpdateExpression: 'set #name = :name, dueDate = :dueDate, done = :done',
+          UpdateExpression: 'set #name = :name, done = :done, dueDate = :dueDate',
           ExpressionAttributeNames: {
             '#name': 'name'
           },
           ExpressionAttributeValues: {
             ':name': todoUpdate.name,
-            ':dueDate': todoUpdate.dueDate,
-            ':done': todoUpdate.done
+            ':done': todoUpdate.done,
+            ':dueDate': todoUpdate.dueDate
           }
         })
         .promise()
     }
   
     async deleteTodoItem(userId: string, todoId: string) {
-      logger.info(`deleting todo ${todoId}`)
+      logger.info(`delete todo with Id : ${todoId}`)
       await this.docClient
         .delete({
           TableName: this.todosTable,
@@ -92,7 +92,7 @@ export class TodosAccess {
   
     async updateAttachmentUrl(userId: string, todoId: string, newUrl: string) {
       logger.info(
-        `Updating ${newUrl} attachment URL for todo ${todoId} in table ${this.todosTable}`
+        `Update ${newUrl} attachment URL for todo with ${todoId} in table ${this.todosTable}`
       )
   
       await this.docClient
@@ -113,7 +113,7 @@ export class TodosAccess {
   
   function createDynamoDBClient(): DocumentClient {
     if (process.env.IS_OFFLINE) {
-      logger.info('Creating a local DynamoDB instance')
+      logger.info('Create a local DynamoDB instance')
       return new XAWS.DynamoDB.DocumentClient({
         region: 'localhost',
         endpoint: 'http://localhost:8000'

@@ -11,12 +11,17 @@ package:
   individually: true
 
 custom:
-  webpack:
-    webpackConfig: ./webpack.config.js
-    includeModules: true
-    packagerOptions:
-      scripts:
-        - rm -rf node_modules/aws-sdk
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Udagram API
+        description: Serverless application for todo app
+    models:
+      - name: TodoRequest
+        contentType: application/json
+        schema: ${file(models/create-todo-model.json)}
+
 
 provider:
   name: aws
@@ -84,9 +89,12 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
-          request:
-            schemas:
-              application/json: ${file(models/create-todo-model.json)}
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create a new todo
+            description: Create a new todo
+            requestModels:
+              'application/json': TodoRequest
     iamRoleStatements:
       - Effect: Allow
         Action:
